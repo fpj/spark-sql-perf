@@ -34,7 +34,11 @@ class TPCDS(@transient sqlContext: SQLContext)
   with Tpcds_2_4_Queries
   with Serializable {
 
-  def this() = this(SparkSession.builder.getOrCreate().sqlContext)
+  def this() = this(SparkSession.builder
+    .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension")
+    .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog")
+    .getOrCreate()
+    .sqlContext)
 
   /*
   def setupBroadcast(skipTables: Seq[String] = Seq("store_sales", "customer")) = {

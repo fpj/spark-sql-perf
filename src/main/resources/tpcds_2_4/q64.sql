@@ -45,10 +45,27 @@
           ad1.ca_street_name, ad1.ca_city, ad1.ca_zip, ad2.ca_street_number,
           ad2.ca_street_name, ad2.ca_city, ad2.ca_zip, d1.d_year, d2.d_year, d3.d_year
  )
- select cs1.product_name, cs1.store_name, cs1.store_zip, cs1.b_street_number,
-        cs1.b_streen_name, cs1.b_city, cs1.b_zip, cs1.c_street_number, cs1.c_street_name,
-        cs1.c_city, cs1.c_zip, cs1.syear, cs1.cnt, cs1.s1, cs1.s2, cs1.s3, cs2.s1,
-        cs2.s2, cs2.s3, cs2.syear, cs2.cnt
+ select cs1.product_name as cs1_product_name,
+        cs1.store_name as cs1_store_name,
+        cs1.store_zip as cs1_store_zip,
+        cs1.b_street_number as cs1_b_street_number,
+        cs1.b_streen_name as cs1_b_streen_name,
+        cs1.b_city as cs1_b_city,
+        cs1.b_zip as cs1_b_zip,
+        cs1.c_street_number as cs1_c_street_number,
+        cs1.c_street_name as cs1_c_street_name,
+        cs1.c_city as cs1_c_city,
+        cs1.c_zip as cs1_c_zip,
+        cs1.syear as cs1_syear,
+        cs1.cnt as cs1_cnt,
+        cs1.s1 as cs1_s1,
+        cs1.s2 as cs1_s2,
+        cs1.s3 as cs1_s3,
+        cs2.s1 as cs2_s1,
+        cs2.s2 as cs2_s2,
+        cs2.s3 as cs2_s3,
+        cs2.syear as cs2_syear,
+        cs2.cnt as cs2_cnt
  from cross_sales cs1,cross_sales cs2
  where cs1.item_sk=cs2.item_sk and
       cs1.syear = 1999 and
