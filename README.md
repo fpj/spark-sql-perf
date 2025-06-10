@@ -1,6 +1,7 @@
 # Spark SQL Performance Tests
 
 [![Build Status](https://travis-ci.org/databricks/spark-sql-perf.svg)](https://travis-ci.org/databricks/spark-sql-perf)
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Ffpj%2Fspark-sql-perf.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Ffpj%2Fspark-sql-perf?ref=badge_shield)
 
 This is a performance testing framework for [Spark SQL](https://spark.apache.org/sql/) in [Apache Spark](https://spark.apache.org/) 2.2+.
 
@@ -169,3 +170,6 @@ For running parallel TPCDS streams:
 ### tpch_run notebook
 
 This notebook can be used to run TPCH queries.  Data needs be generated first.
+
+## License
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Ffpj%2Fspark-sql-perf.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Ffpj%2Fspark-sql-perf?ref=badge_large)
