@@ -30,7 +30,10 @@ import org.apache.spark.{SparkEnv, SparkContext}
 
 /** A trait to describe things that can be benchmarked. */
 trait Benchmarkable {
-  @transient protected[this] val sqlSession = SparkSession.builder.getOrCreate()
+  @transient protected[this] val sqlSession = SparkSession.builder
+    .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension")
+    .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog")
+    .getOrCreate()
   @transient protected[this] val sqlContext = sqlSession.sqlContext
   @transient protected[this] val sparkContext = sqlSession.sparkContext
 
@@ -43,14 +46,15 @@ trait Benchmarkable {
       description: String = "",
       messages: ArrayBuffer[String],
       timeout: Long,
-      forkThread: Boolean = true): BenchmarkResult = {
+      forkThread: Boolean = true,
+      iteration: Int = 1): BenchmarkResult = {
     logger.info(s"$this: benchmark")
     sparkContext.setJobDescription(s"Execution: $name, $description")
     beforeBenchmark()
     val result = if (forkThread) {
       runBenchmarkForked(includeBreakdown, description, messages, timeout)
     } else {
-      doBenchmark(includeBreakdown, description, messages)
+      doBenchmark(includeBreakdown, description, messages, iteration)
     }
     afterBenchmark(sqlContext.sparkContext)
     result
@@ -107,7 +111,8 @@ trait Benchmarkable {
   protected def doBenchmark(
       includeBreakdown: Boolean,
       description: String = "",
-      messages: ArrayBuffer[String]): BenchmarkResult
+      messages: ArrayBuffer[String],
+      iteration: Int = 1): BenchmarkResult
 
   protected def measureTimeMs[A](f: => A): Double = {
     val startTime = System.nanoTime()

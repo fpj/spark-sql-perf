@@ -256,11 +256,20 @@ abstract class Tables(sqlContext: SQLContext, scaleFactor: String,
         log.info(s"Creating external table $name in database $databaseName using data stored in $location.")
         sqlContext.createExternalTable(qualifiedTableName, location, format)
       }
-      if (partitionColumns.nonEmpty && discoverPartitions) {
-        println(s"Discovering partitions for table $name.")
-        log.info(s"Discovering partitions for table $name.")
+      if (partitionColumns.nonEmpty && discoverPartitions && (format != "delta")) {
+        println(s"Discovering partitions for table $name, format $format.")
+        log.info(s"Discovering partitions for table $name, format $format.")
         sqlContext.sql(s"ALTER TABLE $databaseName.$name RECOVER PARTITIONS")
       }
+
+      // TODO: Decide whether to fully remove these code lines, they seem unnecessary at this point given
+      // that the issue with special characters in column names occurs in the output, not the input.
+      //
+      // if (format == "delta") {
+      //  println(s"Enable column mapping $name.")
+      //  log.info(s"Enable column mapping $name.")
+      //  sqlContext.sql(s"ALTER TABLE $databaseName.$name TBLPROPERTIES ('delta.columnMapping.mode' = 'name')")
+      //}
     }
 
     def createTemporaryTable(location: String, format: String): Unit = {
@@ -330,15 +339,40 @@ abstract class Tables(sqlContext: SQLContext, scaleFactor: String,
     log.info(s"The current database has been set to $databaseName.")
   }
 
-  def createTemporaryTables(location: String, format: String, tableFilter: String = ""): Unit = {
+  /**
+   * Creates a temporary table using the path specified in `location` with the specified `format.
+   * To ease benchmarking, there are two qbeast-related parameters: bigTables and alternativeLocation.
+   * If the format is qbeast, you can specify bigTables as a Seq[String], which will be the tables read
+   * in qbeast format (the others will be read in delta format). For this to work, you have to specify
+   * the location of the delta tables in the alternativeLocation parameter.
+   * @param location location to read the data from
+   * @param format format to read the data: spark.read.format({})
+   * @param tableFilter
+   * @param bigQbeastTables Sequence of tables to be read in qbeast format. The rest will be read in delta format.
+   * @param alternativeDeltaLocation Location of the delta tables, for the tables not read in qbeast format.
+   */
+  def createTemporaryTables(location: String, format: String, tableFilter: String = "",
+                            bigQbeastTables: Seq[String] = Seq.empty, alternativeDeltaLocation: String = ""): Unit = {
     val filtered = if (tableFilter.isEmpty) {
       tables
     } else {
       tables.filter(_.name == tableFilter)
     }
     filtered.foreach { table =>
-      val tableLocation = s"$location/${table.name}"
-      table.createTemporaryTable(tableLocation, format)
+      format match {
+        case "qbeast" =>
+          if (bigQbeastTables.contains(table.name)) {
+            val tableLocation = s"$location/${table.name}"
+            table.createTemporaryTable(tableLocation, format)
+          } else {
+            val tableLocation = s"$alternativeDeltaLocation/${table.name}"
+            table.createTemporaryTable(tableLocation, "delta")
+          }
+
+        case _ =>
+          val tableLocation = s"$location/${table.name}"
+          table.createTemporaryTable(tableLocation, format)
+      }
     }
   }
 

@@ -38,8 +38,12 @@
          from web_sales, date_dim
          where ws_sold_date_sk = d_date_sk and d_year between 1999 and 1999 + 2) x)
  select * from
- (select 'store' channel, i_brand_id,i_class_id,i_category_id
-        ,sum(ss_quantity*ss_list_price) sales, count(*) number_sales
+ (select 'store' this_year_channel,
+         i_brand_id as this_year_i_brand_id,
+         i_class_id as this_year_i_class_id,
+         i_category_id as this_year_i_category_id,
+         sum(ss_quantity*ss_list_price) this_year_sales,
+         count(*) this_year_number_sales
   from store_sales, item, date_dim
   where ss_item_sk in (select ss_item_sk from cross_items)
     and ss_item_sk = i_item_sk
@@ -48,8 +52,12 @@
                      where d_year = 1999 + 1 and d_moy = 12 and d_dom = 11)
   group by i_brand_id,i_class_id,i_category_id
   having sum(ss_quantity*ss_list_price) > (select average_sales from avg_sales)) this_year,
- (select 'store' channel, i_brand_id,i_class_id
-        ,i_category_id, sum(ss_quantity*ss_list_price) sales, count(*) number_sales
+ (select 'store' last_year_channel,
+         i_brand_id as last_year_i_brand_id,
+         i_class_id as last_year_i_class_id,
+         i_category_id as last_year_i_category_id,
+         sum(ss_quantity*ss_list_price) last_year_sales,
+         count(*) last_year_number_sales
  from store_sales, item, date_dim
  where ss_item_sk in (select ss_item_sk from cross_items)
    and ss_item_sk = i_item_sk
@@ -58,9 +66,9 @@
                      where d_year = 1999 and d_moy = 12 and d_dom = 11)
  group by i_brand_id,i_class_id,i_category_id
  having sum(ss_quantity*ss_list_price) > (select average_sales from avg_sales)) last_year
- where this_year.i_brand_id= last_year.i_brand_id
-   and this_year.i_class_id = last_year.i_class_id
-   and this_year.i_category_id = last_year.i_category_id
- order by this_year.channel, this_year.i_brand_id, this_year.i_class_id, this_year.i_category_id
+ where this_year.this_year_i_brand_id = last_year.last_year_i_brand_id
+   and this_year.this_year_i_class_id = last_year.last_year_i_class_id
+   and this_year.this_year_i_category_id = last_year.last_year_i_category_id
+ order by this_year.this_year_channel, this_year.this_year_i_brand_id, this_year.this_year_i_class_id, this_year.this_year_i_category_id
  limit 100
             

@@ -37,6 +37,11 @@ case object ExecutionMode {
     override def toString: String = "saveToParquet"
   }
 
+  /** Benchmark run by saving the output of each query in delta format. */
+  case class WriteDelta(location: String) extends ExecutionMode {
+    override def toString: String = "saveToDelta"
+  }
+
   /**
    * Benchmark run by calculating the sum of the hash value of all rows. This is used to check
    * query results do not change.

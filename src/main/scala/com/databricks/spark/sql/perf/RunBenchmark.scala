@@ -69,8 +69,12 @@ object RunBenchmark {
     val conf = new SparkConf()
       .setMaster(config.master)
       .setAppName(getClass.getName)
+      .set("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension")
+      .set("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog")
+
 
     val sparkSession = SparkSession.builder.config(conf).getOrCreate()
+
     val sc = sparkSession.sparkContext
     val sqlContext = sparkSession.sqlContext
     import sqlContext.implicits._

@@ -5,16 +5,16 @@ name := "spark-sql-perf"
 
 organization := "com.databricks"
 
-scalaVersion := "2.12.10"
+scalaVersion := "2.12.18"
 
-crossScalaVersions := Seq("2.12.10")
+crossScalaVersions := Seq("2.12.18")
 
 sparkPackageName := "databricks/spark-sql-perf"
 
 // All Spark Packages need a license
 licenses := Seq("Apache-2.0" -> url("http://opensource.org/licenses/Apache-2.0"))
 
-sparkVersion := "3.0.0"
+sparkVersion := "3.5.0"
 
 sparkComponents ++= Seq("sql", "hive", "mllib")
 
@@ -39,6 +39,8 @@ libraryDependencies += "com.twitter" %% "util-jvm" % "6.45.0" % "provided"
 libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.5" % "test"
 
 libraryDependencies += "org.yaml" % "snakeyaml" % "1.23"
+
+libraryDependencies += "io.delta" % "delta-spark_2.12" % "3.1.0"
 
 fork := true
 

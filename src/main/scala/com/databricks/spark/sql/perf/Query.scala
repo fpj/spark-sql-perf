@@ -19,10 +19,10 @@ package com.databricks.spark.sql.perf
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 import scala.language.implicitConversions
-
 import org.apache.spark.sql.DataFrame
 import org.apache.spark.sql.catalyst.analysis.UnresolvedRelation
 import org.apache.spark.sql.execution.SparkPlan
+import org.apache.spark.sql.functions.col
 
 
 /** Holds one benchmark query and its metadata. */
@@ -62,7 +62,8 @@ class Query(
   protected override def doBenchmark(
       includeBreakdown: Boolean,
       description: String = "",
-      messages: ArrayBuffer[String]): BenchmarkResult = {
+      messages: ArrayBuffer[String],
+      iteration: Int = 1): BenchmarkResult = {
     try {
       val dataFrame = buildDataFrame
       val queryExecution = dataFrame.queryExecution
@@ -123,6 +124,27 @@ class Query(
           case ExecutionMode.ForeachResults => dataFrame.foreach { _ => ():Unit }
           case ExecutionMode.WriteParquet(location) =>
             dataFrame.write.parquet(s"$location/$name.parquet")
+          case ExecutionMode.WriteDelta(location) => {
+            println(dataFrame.printSchema())
+            // Filter out special characters from column names: ' ,;{}()\n\t='
+            val dfWithColNamesCorrected = dataFrame.select(
+              dataFrame.columns
+                .map(colName => col(s"`${colName}`").as(colName
+                  .replaceAll("\\.", "_")
+                  .replaceAll(" ", "_")
+                  .replaceAll("\\{", "_")
+                  .replaceAll("}", "_")
+                  .replaceAll("\\(", "_")
+                  .replaceAll("\\)", "_")
+                  .replaceAll("=", "_")
+                  .replaceAll("\n", "_")
+                  .replaceAll("\t", "_")
+                  .replaceAll(":", "_")
+                  .replaceAll(",", "_"))): _*
+            )
+            println(dfWithColNamesCorrected.printSchema())
+            dfWithColNamesCorrected.write.format("delta").save(s"$location/$name/iteration$iteration/")
+          }
           case ExecutionMode.HashResults =>
             // SELECT SUM(CRC32(CONCAT_WS(", ", *))) FROM (benchmark query)
             val row =
